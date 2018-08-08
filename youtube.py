@@ -23,9 +23,38 @@ from oauth2client.tools import argparser
 # tab of
 #   https://cloud.google.com/console
 # Please ensure that you have enabled the YouTube Data API for your project.
-DEVELOPER_KEY = "REPLACE_ME"
+DEVELOPER_KEY = "%s"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
+
+
+def YouTube(API_KEY=""):
+    if DEVELOPER_KEY != "%s":
+        API_KEY = DEVELOPER_KEY
+    else:
+        assert API_KEY != ""
+    return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
+                 developerKey=API_KEY)
+
+
+class Channel(object):
+    def __init__(self, youtube, channel_id):
+        self._youtube = youtube
+        self._channel_id = channel_id
+        self.__update()
+        if self.__channel_response["pageInfo"]["totalResults"] != 1:
+            raise ValueError("This channel id is not found.")
+
+    def get_channel_thumbnail(self, size="default"):
+        assert size in ("default", "medium", "high")
+        return self.__channel_response["snippet"]["thumbnails"][size]["url"]
+
+    def __update(self):
+        self.__channel_response = self._youtube.channels().list(
+            part="id, snippet, brandingSettings, contentDetails, invideoPromotion, statistics, topicDetails",
+            channelId=self._channel_id
+        ).execute()
+
 
 def youtube_search(options):
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
