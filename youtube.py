@@ -27,6 +27,15 @@ YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
 
+def check_http_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except HttpError as e:
+            print("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))
+    return wrapper
+
+
 def YouTube(API_KEY=""):
     if DEVELOPER_KEY != "%s":
         API_KEY = DEVELOPER_KEY
@@ -64,12 +73,14 @@ class Channel(object):
             cnt += 50
         return url_list
 
+    @check_http_error
     def __update(self):
         self.__channel_response = self._youtube.channels().list(
             part="id, snippet, brandingSettings, contentDetails, invideoPromotion, statistics, topicDetails",
             id=self._channel_id
         ).execute()
 
+    @check_http_error
     def __search(self, part="id", max_result=25, token=None, order="date"):
         return self._youtube.search().list(
             channelId=self._channel_id,
