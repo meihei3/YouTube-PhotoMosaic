@@ -47,7 +47,7 @@ class Channel(object):
 
     def get_channel_thumbnail_url(self, size="default"):
         assert size in ("default", "medium", "high")
-        return self.__channel_response["snippet"]["thumbnails"][size]["url"]
+        return self.__channel_response["items"][0]["snippet"]["thumbnails"][size]["url"]
 
     def get_video_thumbnail_urls(self, n=10):
         cnt, token = 0, None
@@ -68,18 +68,18 @@ class Channel(object):
     def __update(self):
         self.__channel_response = self._youtube.channels().list(
             part="id, snippet, brandingSettings, contentDetails, invideoPromotion, statistics, topicDetails",
-            channelId=self._channel_id
+            id=self._channel_id
         ).execute()
 
     def __search(self, part="id", max_result=25, token=None, order="date"):
         return self._youtube.search().list(
             channelId=self._channel_id,
             part=part,
-            maxResult=max_result,
-            nextPageToken=token,
+            maxResults=max_result,
+            pageToken=token,
             order=order,
             type="video"
-        )
+        ).execute()
 
 
 def youtube_search(options):
